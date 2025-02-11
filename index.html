@@ -3,10 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Project</title>
+    <title>クリックで動く画像</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        img {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            transition: transform 0.5s ease-out;
+        }
+    </style>
 </head>
 <body>
-    <h1>Daily Drawing</h1>
-    <p>I am living on this day</p>
+    <img id="moveImage" src="image.png" alt="動く画像">
+    <script>
+        document.addEventListener("click", function(event) {
+            let img = document.getElementById("moveImage");
+            img.style.transform = `translate(${event.clientX - 50}px, ${event.clientY - 50}px)`;
+        });
+    </script>
 </body>
 </html>
