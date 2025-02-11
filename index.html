@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>複数のドラッグ可能な画像</title>
+    <title>ランダム配置の画像をドラッグ</title>
     <style>
         body {
             margin: 0;
@@ -14,6 +14,11 @@
             width: 100px;
             height: 100px;
             cursor: grab;
+            z-index: 1; /* 基本のz-index */
+        }
+
+        .draggable.dragging {
+            z-index: 10; /* ドラッグ中の画像のz-indexを大きく */
         }
     </style>
 </head>
@@ -27,8 +32,14 @@
         let offsetX = 0, offsetY = 0;
         let currentImg = null;
 
-        // ドラッグ開始
+        // 画像をランダムな位置に配置
         document.querySelectorAll('.draggable').forEach(img => {
+            let randomX = Math.random() * (window.innerWidth - 100); // 画像幅を考慮してランダムにX座標
+            let randomY = Math.random() * (window.innerHeight - 100); // 画像高さを考慮してランダムにY座標
+            img.style.left = `${randomX}px`;
+            img.style.top = `${randomY}px`;
+
+            // ドラッグ機能を追加
             img.addEventListener("mousedown", startDrag);
             img.addEventListener("touchstart", startDrag);
         });
@@ -44,6 +55,7 @@
         function startDrag(event) {
             isDragging = true;
             currentImg = event.target;
+            currentImg.classList.add('dragging');  // ドラッグ中にクラス追加
             let e = event.type.includes("touch") ? event.touches[0] : event;
             offsetX = e.clientX - currentImg.offsetLeft;
             offsetY = e.clientY - currentImg.offsetTop;
@@ -52,4 +64,14 @@
 
         function drag(event) {
             if (!isDragging) return;
-            let e = e
+            let e = event.type.includes("touch") ? event.touches[0] : event;
+            currentImg.style.left = `${e.clientX - offsetX}px`;
+            currentImg.style.top = `${e.clientY - offsetY}px`;
+        }
+
+        function endDrag() {
+            isDragging = false;
+            currentImg.classList.remove('dragging');  // ドラッグ終了時にクラス削除
+            currentImg.style.cursor = "grab";
+        }
+    </script>
