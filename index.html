@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ドラッグで動く画像</title>
+    <title>複数のドラッグ可能な画像</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
-        img {
+        .draggable {
             position: absolute;
             width: 100px;
             height: 100px;
@@ -18,44 +18,38 @@
     </style>
 </head>
 <body>
-    <img id="draggable" src="image.png" alt="ドラッグ可能な画像">
+    <img class="draggable" src="image1.png" alt="画像1">
+    <img class="draggable" src="image2.png" alt="画像2">
+    <img class="draggable" src="image3.png" alt="画像3">
 
     <script>
-        let img = document.getElementById("draggable");
         let isDragging = false;
         let offsetX = 0, offsetY = 0;
+        let currentImg = null;
 
-        // マウスダウン / タッチスタート
-        img.addEventListener("mousedown", startDrag);
-        img.addEventListener("touchstart", startDrag);
+        // ドラッグ開始
+        document.querySelectorAll('.draggable').forEach(img => {
+            img.addEventListener("mousedown", startDrag);
+            img.addEventListener("touchstart", startDrag);
+        });
 
-        // マウス移動 / タッチ移動
+        // ドラッグ中
         document.addEventListener("mousemove", drag);
         document.addEventListener("touchmove", drag);
 
-        // マウスアップ / タッチ終了
+        // ドラッグ終了
         document.addEventListener("mouseup", endDrag);
         document.addEventListener("touchend", endDrag);
 
         function startDrag(event) {
             isDragging = true;
+            currentImg = event.target;
             let e = event.type.includes("touch") ? event.touches[0] : event;
-            offsetX = e.clientX - img.offsetLeft;
-            offsetY = e.clientY - img.offsetTop;
-            img.style.cursor = "grabbing";
+            offsetX = e.clientX - currentImg.offsetLeft;
+            offsetY = e.clientY - currentImg.offsetTop;
+            currentImg.style.cursor = "grabbing";
         }
 
         function drag(event) {
             if (!isDragging) return;
-            let e = event.type.includes("touch") ? event.touches[0] : event;
-            img.style.left = `${e.clientX - offsetX}px`;
-            img.style.top = `${e.clientY - offsetY}px`;
-        }
-
-        function endDrag() {
-            isDragging = false;
-            img.style.cursor = "grab";
-        }
-    </script>
-</body>
-</html>
+            let e = e
