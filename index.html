@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>クリックで動く画像</title>
+    <title>ドラッグで動く画像</title>
     <style>
         body {
             margin: 0;
@@ -13,17 +13,49 @@
             position: absolute;
             width: 100px;
             height: 100px;
-            transition: transform 0.5s ease-out;
+            cursor: grab;
         }
     </style>
 </head>
 <body>
-    <img id="moveImage" src="image.png" alt="動く画像">
+    <img id="draggable" src="image.png" alt="ドラッグ可能な画像">
+
     <script>
-        document.addEventListener("click", function(event) {
-            let img = document.getElementById("moveImage");
-            img.style.transform = `translate(${event.clientX - 50}px, ${event.clientY - 50}px)`;
-        });
+        let img = document.getElementById("draggable");
+        let isDragging = false;
+        let offsetX = 0, offsetY = 0;
+
+        // マウスダウン / タッチスタート
+        img.addEventListener("mousedown", startDrag);
+        img.addEventListener("touchstart", startDrag);
+
+        // マウス移動 / タッチ移動
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("touchmove", drag);
+
+        // マウスアップ / タッチ終了
+        document.addEventListener("mouseup", endDrag);
+        document.addEventListener("touchend", endDrag);
+
+        function startDrag(event) {
+            isDragging = true;
+            let e = event.type.includes("touch") ? event.touches[0] : event;
+            offsetX = e.clientX - img.offsetLeft;
+            offsetY = e.clientY - img.offsetTop;
+            img.style.cursor = "grabbing";
+        }
+
+        function drag(event) {
+            if (!isDragging) return;
+            let e = event.type.includes("touch") ? event.touches[0] : event;
+            img.style.left = `${e.clientX - offsetX}px`;
+            img.style.top = `${e.clientY - offsetY}px`;
+        }
+
+        function endDrag() {
+            isDragging = false;
+            img.style.cursor = "grab";
+        }
     </script>
 </body>
 </html>
