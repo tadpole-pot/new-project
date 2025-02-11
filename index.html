@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ランダム配置の画像をドラッグ</title>
+    <title>1つの画像だけをドラッグ可能</title>
     <style>
         body {
             margin: 0;
@@ -14,7 +14,7 @@
             width: 100px;
             height: 100px;
             cursor: grab;
-            z-index: 1; /* 基本のz-index */
+            z-index: 1;
         }
 
         .draggable.dragging {
@@ -32,7 +32,7 @@
         let offsetX = 0, offsetY = 0;
         let currentImg = null;
 
-        // 画像をランダムな位置に配置
+        // 画像をランダムに配置
         document.querySelectorAll('.draggable').forEach(img => {
             let randomX = Math.random() * (window.innerWidth - 100); // 画像幅を考慮してランダムにX座標
             let randomY = Math.random() * (window.innerHeight - 100); // 画像高さを考慮してランダムにY座標
@@ -53,6 +53,9 @@
         document.addEventListener("touchend", endDrag);
 
         function startDrag(event) {
+            // 他の画像がドラッグ中なら動かさない
+            if (isDragging) return;
+            
             isDragging = true;
             currentImg = event.target;
             currentImg.classList.add('dragging');  // ドラッグ中にクラス追加
@@ -75,3 +78,6 @@
             currentImg.style.cursor = "grab";
         }
     </script>
+</body>
+</html>
+
