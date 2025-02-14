@@ -5,79 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>everyday experiment</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
+        /* 画像のスタイル */
         .draggable {
-            position: absolute;
-            width: 100px;
-            height: 100px;
+            width: 100px;  /* 画像のサイズ */
+            height: auto; 
+            position: absolute; /* 位置を自由に変更 */
             cursor: grab;
-            z-index: 1;
-        }
-
-        .draggable.dragging {
-            z-index: 10; /* ドラッグ中の画像のz-indexを大きく */
         }
     </style>
 </head>
 <body>
-    <img class="draggable" src="image1.png" alt="画像1">
-    <img class="draggable" src="image2.png" alt="画像2">
-    <img class="draggable" src="image3.gif" alt="画像3">
 
+    <!-- ドラッグ可能な画像 -->
+    <img src="images/image1.png" class="draggable" style="top: 100px; left: 50px;">
+    <img src="images/image2.png" class="draggable" style="top: 200px; left: 150px;">
+    <img src="images/image3.png" class="draggable" style="top: 300px; left: 250px;">
+
+    <!-- JavaScriptのコード（</body>の直前に置く） -->
     <script>
-        let isDragging = false;
-        let offsetX = 0, offsetY = 0;
-        let currentImg = null;
+        document.addEventListener("DOMContentLoaded", function () {
+            const images = document.querySelectorAll(".draggable");
+            let activeImage = null;
+            let offsetX = 0, offsetY = 0;
 
-        // 画像をランダムに配置
-        document.querySelectorAll('.draggable').forEach(img => {
-            let randomX = Math.random() * (window.innerWidth - 100); // 画像幅を考慮してランダムにX座標
-            let randomY = Math.random() * (window.innerHeight - 100); // 画像高さを考慮してランダムにY座標
-            img.style.left = `${randomX}px`;
-            img.style.top = `${randomY}px`;
+            images.forEach(img => {
+                img.style.position = "absolute"; // 画像を自由に動かせるようにする
 
-            // ドラッグ機能を追加
-            img.addEventListener("mousedown", startDrag);
-            img.addEventListener("touchstart", startDrag);
+                // マウス用イベント
+                img.addEventListener("mousedown", startDrag);
+                document.addEventListener("mousemove", onDrag);
+                document.addEventListener("mouseup", endDrag);
+
+                // タッチ用イベント
+                img.addEventListener("touchstart", startDrag, { passive: false });
+                document.addEventListener("touchmove", onDrag, { passive: false });
+                document.addEventListener("touchend", endDrag);
+            });
+
+            function startDrag(event) {
+                event.preventDefault(); // スクロールを防ぐ
+                activeImage = event.target;
+
+                if (event.type === "mousedown") {
+                    offsetX = event.clientX - activeImage.offsetLeft;
+                    offsetY = event.clientY - activeImage.offsetTop;
+                } else if (event.type === "touchstart") {
+                    const touch = event.touches[0];
+                    offsetX = touch.clientX - activeImage.offsetLeft;
+                    offsetY = touch.clientY - activeImage.offsetTop;
+                }
+            }
+
+            function onDrag(event) {
+                if (!activeImage) return;
+
+                let x, y;
+                if (event.type === "mousemove") {
+                    x = event.clientX - offsetX;
+                    y = event.clientY - offsetY;
+                } else if (event.type === "touchmove") {
+                    event.preventDefault(); // スクロールを防ぐ
+                    const touch = event.touches[0];
+                    x = touch.clientX - offsetX;
+                    y = touch.clientY - offsetY;
+                }
+
+                activeImage.style.left = `${x}px`;
+                activeImage.style.top = `${y}px`;
+            }
+
+            function endDrag() {
+                activeImage = null;
+            }
         });
-
-        // ドラッグ中
-        document.addEventListener("mousemove", drag);
-        document.addEventListener("touchmove", drag);
-
-        // ドラッグ終了
-        document.addEventListener("mouseup", endDrag);
-        document.addEventListener("touchend", endDrag);
-
-        function startDrag(event) {
-            // 他の画像がドラッグ中なら動かさない
-            if (isDragging) return;
-            
-            isDragging = true;
-            currentImg = event.target;
-            currentImg.classList.add('dragging');  // ドラッグ中にクラス追加
-            let e = event.type.includes("touch") ? event.touches[0] : event;
-            offsetX = e.clientX - currentImg.offsetLeft;
-            offsetY = e.clientY - currentImg.offsetTop;
-            currentImg.style.cursor = "grabbing";
-        }
-
-        function drag(event) {
-            if (!isDragging) return;
-            let e = event.type.includes("touch") ? event.touches[0] : event;
-            currentImg.style.left = `${e.clientX - offsetX}px`;
-            currentImg.style.top = `${e.clientY - offsetY}px`;
-        }
-
-        function endDrag() {
-            isDragging = false;
-            currentImg.classList.remove('dragging');  // ドラッグ終了時にクラス削除
-            currentImg.style.cursor = "grab";
-        }
     </script>
+
 </body>
 </html>
-
