@@ -16,8 +16,8 @@
             width: 100px;
             height: auto;
             cursor: grab;
-            user-select: none; /* テキスト選択を防ぐ */
-            touch-action: none; /* タッチスクロールを防ぐ */
+            user-select: none;
+            touch-action: none;
         }
     </style>
 </head>
@@ -26,21 +26,34 @@
     <!-- 画像を配置 -->
     <img id="img1" src="images/image1.png" class="draggable">
     <img id="img2" src="images/image2.png" class="draggable">
-    <img id="img3" src="images/image3.gif" class="draggable"> <!-- GIFに変更 -->
+    <img id="img3" src="images/image3.gif" class="draggable">
 
     <script>
-        const initialPositions = [
-            { id: "img1", x: 100, y: 150 },
-            { id: "img2", x: 300, y: 200 },
-            { id: "img3", x: 500, y: 250 } // GIF画像の初期位置
-        ];
+        function setInitialPositions() {
+            let isMobile = window.innerWidth < 768; // 画面の幅が768px未満ならスマホ
 
-        // 初期位置を設定
-        initialPositions.forEach(pos => {
-            let img = document.getElementById(pos.id);
-            img.style.left = pos.x + "px";
-            img.style.top = pos.y + "px";
-        });
+            const mobilePositions = [
+                { id: "img1", x: 50, y: 100 },
+                { id: "img2", x: 100, y: 300 },
+                { id: "img3", x: 150, y: 500 }
+            ];
+
+            const desktopPositions = [
+                { id: "img1", x: 100, y: 150 },
+                { id: "img2", x: 300, y: 200 },
+                { id: "img3", x: 500, y: 250 }
+            ];
+
+            const positions = isMobile ? mobilePositions : desktopPositions;
+
+            positions.forEach(pos => {
+                let img = document.getElementById(pos.id);
+                img.style.left = pos.x + "px";
+                img.style.top = pos.y + "px";
+            });
+        }
+
+        setInitialPositions(); // 初回設定
 
         let activeImage = null;
         let offsetX = 0, offsetY = 0;
@@ -98,6 +111,11 @@
         document.querySelectorAll(".draggable").forEach(img => {
             img.addEventListener("mousedown", startDrag);
             img.addEventListener("touchstart", startDrag, { passive: false });
+        });
+
+        // 画面サイズが変わったら、位置をリセット（リロード）
+        window.addEventListener("resize", () => {
+            location.reload();
         });
     </script>
 
