@@ -3,71 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>everyday experiment</title>
+    <title>ドラッグ可能な画像</title>
     <style>
         body {
             position: relative;
             height: 100vh;
             background-color: #f0f0f0;
+            overflow: hidden;
         }
         .draggable {
             position: absolute;
-            width: 100px; /* 画像サイズを調整 */
+            width: 100px;
             height: auto;
             cursor: grab;
+            user-select: none; /* テキスト選択を防ぐ */
+            touch-action: none; /* タッチスクロールを防ぐ */
         }
     </style>
 </head>
 <body>
 
-    <!-- 画像を配置（IDで指定） -->
+    <!-- 画像を配置 -->
     <img id="img1" src="images/image1.png" class="draggable">
     <img id="img2" src="images/image2.png" class="draggable">
-    <img id="img3" src="images/image3.gif" class="draggable">
+    <img id="img3" src="images/image3.png" class="draggable">
 
     <script>
-        // 画像の初期位置を設定
         const initialPositions = [
-            { id: "img1", x: 100, y: 150 },  // 画像1の初期位置
-            { id: "img2", x: 300, y: 200 },  // 画像2の初期位置
-            { id: "img3", x: 500, y: 250 }   // 画像3の初期位置
+            { id: "img1", x: 100, y: 150 },
+            { id: "img2", x: 300, y: 200 },
+            { id: "img3", x: 500, y: 250 }
         ];
 
-        // 各画像を指定の位置に配置
+        // 初期位置を設定
         initialPositions.forEach(pos => {
             let img = document.getElementById(pos.id);
             img.style.left = pos.x + "px";
             img.style.top = pos.y + "px";
         });
 
-        // ドラッグ機能
         let activeImage = null;
+        let offsetX = 0, offsetY = 0;
 
-        function onMouseDown(event) {
+        function startDrag(event) {
+            event.preventDefault();
             activeImage = event.target;
+
+            if (event.type === "mousedown") {
+                offsetX = event.clientX - activeImage.offsetLeft;
+                offsetY = event.clientY - activeImage.offsetTop;
+                document.addEventListener("mousemove", drag);
+                document.addEventListener("mouseup", stopDrag);
+            } else if (event.type === "touchstart") {
+                let touch = event.touches[0];
+                offsetX = touch.clientX - activeImage.offsetLeft;
+                offsetY = touch.clientY - activeImage.offsetTop;
+                document.addEventListener("touchmove", drag, { passive: false });
+                document.addEventListener("touchend", stopDrag);
+            }
+
             activeImage.style.cursor = "grabbing";
         }
 
-        function onMouseMove(event) {
+        function drag(event) {
+            event.preventDefault();
             if (!activeImage) return;
-            activeImage.style.left = event.pageX - 50 + "px"; // 画像の中心を基準に移動
-            activeImage.style.top = event.pageY - 50 + "px";
+
+            let x, y;
+            if (event.type === "mousemove") {
+                x = event.clientX;
+                y = event.clientY;
+            } else if (event.type === "touchmove") {
+                let touch = event.touches[0];
+                x = touch.clientX;
+                y = touch.clientY;
+            }
+
+            activeImage.style.left = (x - offsetX) + "px";
+            activeImage.style.top = (y - offsetY) + "px";
         }
 
-        function onMouseUp() {
+        function stopDrag() {
             if (activeImage) {
                 activeImage.style.cursor = "grab";
                 activeImage = null;
             }
+            document.removeEventListener("mousemove", drag);
+            document.removeEventListener("mouseup", stopDrag);
+            document.removeEventListener("touchmove", drag);
+            document.removeEventListener("touchend", stopDrag);
         }
 
         // イベントリスナーを追加
         document.querySelectorAll(".draggable").forEach(img => {
-            img.addEventListener("mousedown", onMouseDown);
+            img.addEventListener("mousedown", startDrag);
+            img.addEventListener("touchstart", startDrag, { passive: false });
         });
-
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
     </script>
 
 </body>
