@@ -20,10 +20,6 @@
             touch-action: none;
             transition: transform 0.3s ease-in-out;
         }
-        .enlarged {
-            transform: scale(2);
-            z-index: 10;
-        }
     </style>
 </head>
 <body>
@@ -55,7 +51,6 @@
                 let img = document.getElementById(pos.id);
                 img.style.left = pos.x + "px";
                 img.style.top = pos.y + "px";
-                img.dataset.clicked = "false"; // 初回クリックフラグ
                 img.dataset.dragging = "false"; // ドラッグ中フラグ
             });
         }
@@ -117,32 +112,10 @@
             document.removeEventListener("touchend", stopDrag);
         }
 
-        // 画像をクリック（タップ）すると拡大・縮小
-        function toggleSize(event) {
-            event.stopPropagation(); // ドラッグと干渉しないように
-            let img = event.target;
-
-            // 画像がドラッグ中でない場合のみ拡大・縮小を適用
-            if (img.dataset.dragging === "false") {
-                if (img.dataset.clicked === "false") {
-                    img.dataset.clicked = "true"; // 最初のクリック時は何もしない
-                } else {
-                    if (img.classList.contains("enlarged")) {
-                        img.classList.remove("enlarged"); // 元のサイズに戻す
-                    } else {
-                        document.querySelectorAll(".draggable").forEach(el => el.classList.remove("enlarged"));
-                        img.classList.add("enlarged"); // 画像を拡大
-                    }
-                }
-            }
-        }
-
         // イベントリスナーを追加
         document.querySelectorAll(".draggable").forEach(img => {
             img.addEventListener("mousedown", startDrag);
             img.addEventListener("touchstart", startDrag, { passive: false });
-            img.addEventListener("click", toggleSize);
-            img.addEventListener("touchend", toggleSize);
         });
 
         // 画面サイズが変わったら、位置をリセット（リロード）
