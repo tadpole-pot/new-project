@@ -56,6 +56,7 @@
                 img.style.left = pos.x + "px";
                 img.style.top = pos.y + "px";
                 img.dataset.clicked = "false"; // 初回クリックフラグ
+                img.dataset.dragging = "false"; // ドラッグ中フラグ
             });
         }
 
@@ -71,12 +72,14 @@
             if (event.type === "mousedown") {
                 offsetX = event.clientX - activeImage.offsetLeft;
                 offsetY = event.clientY - activeImage.offsetTop;
+                activeImage.dataset.dragging = "true"; // ドラッグ中フラグをtrueに設定
                 document.addEventListener("mousemove", drag);
                 document.addEventListener("mouseup", stopDrag);
             } else if (event.type === "touchstart") {
                 let touch = event.touches[0];
                 offsetX = touch.clientX - activeImage.offsetLeft;
                 offsetY = touch.clientY - activeImage.offsetTop;
+                activeImage.dataset.dragging = "true"; // ドラッグ中フラグをtrueに設定
                 document.addEventListener("touchmove", drag, { passive: false });
                 document.addEventListener("touchend", stopDrag);
             }
@@ -105,6 +108,7 @@
         function stopDrag() {
             if (activeImage) {
                 activeImage.style.cursor = "grab";
+                activeImage.dataset.dragging = "false"; // ドラッグ終了後フラグをfalseに設定
                 activeImage = null;
             }
             document.removeEventListener("mousemove", drag);
@@ -118,14 +122,17 @@
             event.stopPropagation(); // ドラッグと干渉しないように
             let img = event.target;
 
-            if (img.dataset.clicked === "false") {
-                img.dataset.clicked = "true"; // 最初のクリック時は何もしない
-            } else {
-                if (img.classList.contains("enlarged")) {
-                    img.classList.remove("enlarged"); // 元のサイズに戻す
+            // 画像がドラッグ中でない場合のみ拡大・縮小を適用
+            if (img.dataset.dragging === "false") {
+                if (img.dataset.clicked === "false") {
+                    img.dataset.clicked = "true"; // 最初のクリック時は何もしない
                 } else {
-                    document.querySelectorAll(".draggable").forEach(el => el.classList.remove("enlarged"));
-                    img.classList.add("enlarged"); // 画像を拡大
+                    if (img.classList.contains("enlarged")) {
+                        img.classList.remove("enlarged"); // 元のサイズに戻す
+                    } else {
+                        document.querySelectorAll(".draggable").forEach(el => el.classList.remove("enlarged"));
+                        img.classList.add("enlarged"); // 画像を拡大
+                    }
                 }
             }
         }
@@ -146,4 +153,3 @@
 
 </body>
 </html>
-
