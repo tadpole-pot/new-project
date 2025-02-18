@@ -3,20 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D ギャラリー (iPhone対応)</title>
+    <title>3D ギャラリー (iPhone GIF対応)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
+        #gif-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 200px;  /* GIFのサイズを調整 */
+            height: 200px;
+            transform: translate(-50%, -50%);
+            display: none;  /* 最初は非表示 */
+        }
     </style>
 </head>
 <body>
+    <div id="gif-container">
+        <img id="gif-image" src="painting.gif" width="100%" height="100%">
+    </div>
+
     <script>
         // シーンを作成
         const scene = new THREE.Scene();
 
         // カメラの設定
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(3, 3, 5); // 斜め上の視点
+        camera.position.set(3, 3, 5); // 初期視点
 
         // レンダラーを設定
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -43,51 +56,29 @@
 
         walls.forEach(wall => scene.add(wall));
 
-        // GIFを表示するための <img> 要素を作成
-        const gifImg = document.createElement('img');
-        gifImg.src = "image3.gif"; // ← ここを好きなGIFに変更！
-        gifImg.crossOrigin = "anonymous"; // CORS対応
-        gifImg.style.display = "none"; // 画面には表示しない
-
-        // GIFをCanvasTextureとして適用
-        const gifCanvas = document.createElement('canvas');
-        const gifCtx = gifCanvas.getContext('2d');
-        gifCanvas.width = 512;
-        gifCanvas.height = 512;
-        const gifTexture = new THREE.CanvasTexture(gifCanvas);
-
-        // GIFを更新する関数
-        function updateGifTexture() {
-            gifCtx.clearRect(0, 0, gifCanvas.width, gifCanvas.height);
-            gifCtx.drawImage(gifImg, 0, 0, gifCanvas.width, gifCanvas.height);
-            gifTexture.needsUpdate = true;
-            requestAnimationFrame(updateGifTexture);
-        }
-
-        gifImg.onload = () => updateGifTexture(); // GIFが読み込まれたら更新開始
-
-        // ペインティング（GIF）の3Dオブジェクト
+        // ペインティング（静止画としてのプレースホルダー）
+        const paintingTexture = new THREE.TextureLoader().load("painting_still.png"); // GIFの代わりの静止画
         const painting = new THREE.Mesh(
             new THREE.PlaneGeometry(2, 2),
-            new THREE.MeshBasicMaterial({ map: gifTexture })
+            new THREE.MeshBasicMaterial({ map: paintingTexture })
         );
         painting.position.set(0, 2.5, -4.9);
         scene.add(painting);
 
-        // カメラの移動
-        let targetPosition = camera.position.clone();
-        function animateCamera() {
-            camera.position.lerp(targetPosition, 0.05);
+        // アニメーションループ
+        function animate() {
             renderer.render(scene, camera);
-            requestAnimationFrame(animateCamera);
+            requestAnimationFrame(animate);
         }
-        animateCamera();
+        animate();
 
-        // クリック & タップでペインティングにズーム
+        // GIFの表示・非表示を制御
+        const gifContainer = document.getElementById("gif-container");
+        const gifImage = document.getElementById("gif-image");
+
         function onTapOrClick(event) {
             event.preventDefault();
 
-            // タッチとクリックの座標を取得
             let x, y;
             if (event.touches) {
                 x = event.touches[0].clientX;
@@ -107,11 +98,11 @@
             const intersects = raycaster.intersectObject(painting);
 
             if (intersects.length > 0) {
-                // すでにズームしていたら元に戻す
-                if (targetPosition.z === -2.5) {
-                    targetPosition.set(3, 3, 5); // 元の視点
+                // GIFを表示 or 非表示
+                if (gifContainer.style.display === "none") {
+                    gifContainer.style.display = "block";
                 } else {
-                    targetPosition.set(0, 2.5, -2.5); // ズーム
+                    gifContainer.style.display = "none";
                 }
             }
         }
