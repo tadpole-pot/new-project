@@ -45,18 +45,23 @@
         walls.forEach(wall => scene.add(wall));
 
         // ペインティングの設定
-        const paintingTexture = new THREE.TextureLoader().load("painting_still.png"); 
-        const painting = new THREE.Mesh(
-            new THREE.PlaneGeometry(2, 2),
-            new THREE.MeshBasicMaterial({ map: paintingTexture })
+        const paintingTexture = new THREE.TextureLoader().load(
+            "images/painting_still.png", // 画像のパス（確実に正しいパスを設定）
+            () => { console.log("✅ 画像読み込み成功！"); }, // 読み込み成功時
+            undefined, 
+            () => { console.error("❌ 画像が読み込めません！パスを確認してください！"); } // 読み込み失敗時
         );
-        painting.position.set(0, 2.5, -4.9);
+        const painting = new THREE.Mesh(
+            new THREE.PlaneGeometry(2, 2), // 絵のサイズ
+            new THREE.MeshBasicMaterial({ map: paintingTexture }) // テクスチャを設定
+        );
+        painting.position.set(0, 2.5, -4.5); // 少し前に出して配置
         scene.add(painting);
 
         // カメラ移動アニメーションの設定
         let targetPosition = camera.position.clone();
         let lookingAt = new THREE.Vector3(0, 2.5, 0); // 見るべき方向
-        let isZoomedIn = false; // ズームしているかどうか
+        let isZoomedIn = false; // ズーム状態の管理
 
         function animate() {
             requestAnimationFrame(animate);
