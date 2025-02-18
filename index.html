@@ -3,126 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>everyday experiment</title>
+    <title>3D ギャラリー</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body {
-            position: relative;
-            height: 100vh;
-            background-color: #fffff;
-            overflow: hidden;
-        }
-        .draggable {
-            position: absolute;
-            width: 100px;
-            height: auto;
-            cursor: grab;
-            user-select: none;
-            touch-action: none;
-            transition: transform 0.3s ease-in-out;
-        }
+        body { margin: 0; overflow: hidden; }
     </style>
 </head>
 <body>
-
-    <!-- 画像を配置 -->
-    <img id="img1" src="images/image1.png" class="draggable">
-    <img id="img2" src="images/image2.png" class="draggable">
-    <img id="img3" src="images/image3.gif" class="draggable">
-
     <script>
-        function setInitialPositions() {
-            let isMobile = window.innerWidth < 768;
+        // シーンの作成
+        const scene = new THREE.Scene();
 
-            const mobilePositions = [
-                { id: "img1", x: 200, y: 250 },
-                { id: "img2", x: 100, y: 300 },
-                { id: "img3", x: 150, y: 350 }
-            ];
+        // カメラの設定 (視野角, アスペクト比, 近距離, 遠距離)
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(3, 3, 5); // 最初の視点を斜め上に
 
-            const desktopPositions = [
-                { id: "img1", x: 350, y: 150 },
-                { id: "img2", x: 300, y: 200 },
-                { id: "img3", x: 400, y: 250 }
-            ];
+        // レンダラーの設定
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-            const positions = isMobile ? mobilePositions : desktopPositions;
+        // ギャラリーの壁を作成（白い空間）
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xdddddd });
 
-            positions.forEach(pos => {
-                let img = document.getElementById(pos.id);
-                img.style.left = pos.x + "px";
-                img.style.top = pos.y + "px";
-                img.dataset.dragging = "false"; // ドラッグ中フラグ
-            });
+        const walls = [
+            new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial), // 背面
+            new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial), // 前面
+            new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial), // 左
+            new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial), // 右
+            new THREE.Mesh(new THREE.PlaneGeometry(10, 10), floorMaterial) // 床
+        ];
+
+        walls[0].position.set(0, 2.5, -5); // 背面
+        walls[1].position.set(0, 2.5, 5); // 前面
+        walls[2].position.set(-5, 2.5, 0); walls[2].rotation.y = Math.PI / 2; // 左
+        walls[3].position.set(5, 2.5, 0); walls[3].rotation.y = -Math.PI / 2; // 右
+        walls[4].position.set(0, 0, 0); walls[4].rotation.x = -Math.PI / 2; // 床
+
+        walls.forEach(wall => scene.add(wall));
+
+        // ペインティング（画像）を配置
+        const textureLoader = new THREE.TextureLoader();
+        const paintingTexture = textureLoader.load("painting.jpg"); // ← ここを好きな画像に変更！
+
+        const painting = new THREE.Mesh(
+            new THREE.PlaneGeometry(2, 2),
+            new THREE.MeshBasicMaterial({ map: paintingTexture })
+        );
+        painting.position.set(0, 2.5, -4.9); // 背面の壁に貼る
+        scene.add(painting);
+
+        // カメラ移動アニメーション
+        let targetPosition = camera.position.clone();
+        function animateCamera() {
+            camera.position.lerp(targetPosition, 0.05);
+            renderer.render(scene, camera);
+            requestAnimationFrame(animateCamera);
         }
+        animateCamera();
 
-        setInitialPositions();
+        // クリックでペインティングにズーム
+        window.addEventListener("click", (event) => {
+            const mouse = new THREE.Vector2(
+                (event.clientX / window.innerWidth) * 2 - 1,
+                -(event.clientY / window.innerHeight) * 2 + 1
+            );
 
-        let activeImage = null;
-        let offsetX = 0, offsetY = 0;
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(painting);
 
-        function startDrag(event) {
-            event.preventDefault();
-            activeImage = event.target;
-
-            if (event.type === "mousedown") {
-                offsetX = event.clientX - activeImage.offsetLeft;
-                offsetY = event.clientY - activeImage.offsetTop;
-                activeImage.dataset.dragging = "true"; // ドラッグ中フラグをtrueに設定
-                document.addEventListener("mousemove", drag);
-                document.addEventListener("mouseup", stopDrag);
-            } else if (event.type === "touchstart") {
-                let touch = event.touches[0];
-                offsetX = touch.clientX - activeImage.offsetLeft;
-                offsetY = touch.clientY - activeImage.offsetTop;
-                activeImage.dataset.dragging = "true"; // ドラッグ中フラグをtrueに設定
-                document.addEventListener("touchmove", drag, { passive: false });
-                document.addEventListener("touchend", stopDrag);
+            if (intersects.length > 0) {
+                targetPosition.set(0, 2.5, -2.5); // 絵画の正面に移動
+            } else {
+                targetPosition.set(3, 3, 5); // 元の視点に戻る
             }
-
-            activeImage.style.cursor = "grabbing";
-        }
-
-        function drag(event) {
-            event.preventDefault();
-            if (!activeImage) return;
-
-            let x, y;
-            if (event.type === "mousemove") {
-                x = event.clientX;
-                y = event.clientY;
-            } else if (event.type === "touchmove") {
-                let touch = event.touches[0];
-                x = touch.clientX;
-                y = touch.clientY;
-            }
-
-            activeImage.style.left = (x - offsetX) + "px";
-            activeImage.style.top = (y - offsetY) + "px";
-        }
-
-        function stopDrag() {
-            if (activeImage) {
-                activeImage.style.cursor = "grab";
-                activeImage.dataset.dragging = "false"; // ドラッグ終了後フラグをfalseに設定
-                activeImage = null;
-            }
-            document.removeEventListener("mousemove", drag);
-            document.removeEventListener("mouseup", stopDrag);
-            document.removeEventListener("touchmove", drag);
-            document.removeEventListener("touchend", stopDrag);
-        }
-
-        // イベントリスナーを追加
-        document.querySelectorAll(".draggable").forEach(img => {
-            img.addEventListener("mousedown", startDrag);
-            img.addEventListener("touchstart", startDrag, { passive: false });
         });
 
-        // 画面サイズが変わったら、位置をリセット（リロード）
+        // ウィンドウリサイズ対応
         window.addEventListener("resize", () => {
-            location.reload();
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
-    </script>
 
+    </script>
 </body>
 </html>
