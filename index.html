@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D ギャラリー</title>
+    <title>3D ギャラリー (GIF対応)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
@@ -11,19 +11,19 @@
 </head>
 <body>
     <script>
-        // シーンの作成
+        // シーンを作成
         const scene = new THREE.Scene();
 
-        // カメラの設定 (視野角, アスペクト比, 近距離, 遠距離)
+        // カメラの設定
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(3, 3, 5); // 最初の視点を斜め上に
+        camera.position.set(3, 3, 5); // 斜め上の視点
 
-        // レンダラーの設定
+        // レンダラーを設定
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // ギャラリーの壁を作成（白い空間）
+        // ギャラリーの壁
         const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
         const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xdddddd });
 
@@ -43,18 +43,38 @@
 
         walls.forEach(wall => scene.add(wall));
 
-        // ペインティング（画像）を配置
-        const textureLoader = new THREE.TextureLoader();
-        const paintingTexture = textureLoader.load("image3.gif"); // ← ここを好きな画像に変更！
+        // GIFを表示するための <img> 要素を作成
+        const gifImg = document.createElement('img');
+        gifImg.src = "painting.gif"; // ← ここを好きなGIFに変更！
+        gifImg.crossOrigin = "anonymous"; // CORS対応
+        gifImg.style.display = "none"; // 画面には表示しない
 
+        // GIFをCanvasTextureとして適用
+        const gifCanvas = document.createElement('canvas');
+        const gifCtx = gifCanvas.getContext('2d');
+        gifCanvas.width = 512;
+        gifCanvas.height = 512;
+        const gifTexture = new THREE.CanvasTexture(gifCanvas);
+
+        // GIFを更新する関数
+        function updateGifTexture() {
+            gifCtx.clearRect(0, 0, gifCanvas.width, gifCanvas.height);
+            gifCtx.drawImage(gifImg, 0, 0, gifCanvas.width, gifCanvas.height);
+            gifTexture.needsUpdate = true;
+            requestAnimationFrame(updateGifTexture);
+        }
+
+        gifImg.onload = () => updateGifTexture(); // GIFが読み込まれたら更新開始
+
+        // ペインティング（GIF）の3Dオブジェクト
         const painting = new THREE.Mesh(
             new THREE.PlaneGeometry(2, 2),
-            new THREE.MeshBasicMaterial({ map: paintingTexture })
+            new THREE.MeshBasicMaterial({ map: gifTexture })
         );
-        painting.position.set(0, 2.5, -4.9); // 背面の壁に貼る
+        painting.position.set(0, 2.5, -4.9);
         scene.add(painting);
 
-        // カメラ移動アニメーション
+        // カメラの移動
         let targetPosition = camera.position.clone();
         function animateCamera() {
             camera.position.lerp(targetPosition, 0.05);
@@ -75,9 +95,9 @@
             const intersects = raycaster.intersectObject(painting);
 
             if (intersects.length > 0) {
-                targetPosition.set(0, 2.5, -2.5); // 絵画の正面に移動
+                targetPosition.set(0, 2.5, -2.5); // ズーム
             } else {
-                targetPosition.set(3, 3, 5); // 元の視点に戻る
+                targetPosition.set(3, 3, 5); // 元の視点
             }
         });
 
@@ -91,3 +111,4 @@
     </script>
 </body>
 </html>
+
