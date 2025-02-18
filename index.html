@@ -44,12 +44,12 @@
 
         walls.forEach(wall => scene.add(wall));
 
-        // ペインティングの設定
+        // ペインティングの設定（画像を読み込んで表示）
         const paintingTexture = new THREE.TextureLoader().load(
-            "images/painting_still.png", // 画像のパス（確実に正しいパスを設定）
-            () => { console.log("✅ 画像読み込み成功！"); }, // 読み込み成功時
+            "images/painting_still.png", // 画像パス（確実に正しいパスを設定）
+            () => { console.log("✅ 画像読み込み成功！"); },
             undefined, 
-            () => { console.error("❌ 画像が読み込めません！パスを確認してください！"); } // 読み込み失敗時
+            () => { console.error("❌ 画像が読み込めません！パスを確認してください！"); }
         );
         const painting = new THREE.Mesh(
             new THREE.PlaneGeometry(2, 2), // 絵のサイズ
