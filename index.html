@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D ギャラリー (GIF対応)</title>
+    <title>3D ギャラリー (iPhone対応)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
@@ -19,7 +19,7 @@
         camera.position.set(3, 3, 5); // 斜め上の視点
 
         // レンダラーを設定
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -83,11 +83,23 @@
         }
         animateCamera();
 
-        // クリックでペインティングにズーム
-        window.addEventListener("click", (event) => {
+        // クリック & タップでペインティングにズーム
+        function onTapOrClick(event) {
+            event.preventDefault();
+
+            // タッチとクリックの座標を取得
+            let x, y;
+            if (event.touches) {
+                x = event.touches[0].clientX;
+                y = event.touches[0].clientY;
+            } else {
+                x = event.clientX;
+                y = event.clientY;
+            }
+
             const mouse = new THREE.Vector2(
-                (event.clientX / window.innerWidth) * 2 - 1,
-                -(event.clientY / window.innerHeight) * 2 + 1
+                (x / window.innerWidth) * 2 - 1,
+                -(y / window.innerHeight) * 2 + 1
             );
 
             const raycaster = new THREE.Raycaster();
@@ -95,11 +107,17 @@
             const intersects = raycaster.intersectObject(painting);
 
             if (intersects.length > 0) {
-                targetPosition.set(0, 2.5, -2.5); // ズーム
-            } else {
-                targetPosition.set(3, 3, 5); // 元の視点
+                // すでにズームしていたら元に戻す
+                if (targetPosition.z === -2.5) {
+                    targetPosition.set(3, 3, 5); // 元の視点
+                } else {
+                    targetPosition.set(0, 2.5, -2.5); // ズーム
+                }
             }
-        });
+        }
+
+        window.addEventListener("click", onTapOrClick);
+        window.addEventListener("touchstart", onTapOrClick);
 
         // ウィンドウリサイズ対応
         window.addEventListener("resize", () => {
@@ -111,4 +129,5 @@
     </script>
 </body>
 </html>
+
 
