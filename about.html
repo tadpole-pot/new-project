@@ -1,12 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>test</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>テストページ</title>
+<style>
+  body { font-family: sans-serif; padding: 2rem; }
+  #protected { display: none; }
+</style>
 </head>
 <body>
-  <h1>test</h1>
-  <p>test</p>
-  <a href="index.html">back to top</a>
+  <h1>このページはテスト中です</h1>
+  <p>パスワードを入力してください：</p>
+  <input type="password" id="pw" placeholder="パスワード">
+  <button id="btn">開く</button>
+  <p id="msg" style="color:red;"></p>
+
+  <div id="protected">
+    <h2>デザインテストページ</h2>
+    <img src="img/test1.png" alt="テスト画像" width="300">
+    <p>ここにデザインテスト用の内容を置きます。</p>
+  </div>
+
+<script>
+const PASSWORD = "test123"; // ← 好きな文字列でOK（テスト用途ならハッシュ化不要）
+
+document.getElementById('btn').addEventListener('click', () => {
+  const input = document.getElementById('pw').value;
+  if (input === PASSWORD) {
+    document.getElementById('protected').style.display = 'block';
+    document.getElementById('msg').textContent = '';
+  } else {
+    document.getElementById('msg').textContent = 'パスワードが違います';
+  }
+});
+</script>
 </body>
 </html>
